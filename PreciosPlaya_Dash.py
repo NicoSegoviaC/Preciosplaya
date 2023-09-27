@@ -31,6 +31,8 @@ df_last_10_years = df_last_10_years[df_last_10_years["Especie"].isin(valid_speci
 
 # Obtener la lista de especies únicas y ordenarlas alfabéticamente
 especies = sorted(df_last_10_years["Especie"].unique())
+# Obtener la lista de regiones únicas
+regiones = sorted([r for r in df_last_10_years["region"].unique() if isinstance(r, str)])
 
 # Inicializar la app
 app = dash.Dash(__name__)
@@ -39,35 +41,60 @@ server = app.server
 # Definir la estructura de la app
 app.layout = html.Div([
     dcc.Dropdown(
+        id='nivel-dropdown',
+        options=[{'label': 'Nivel nacional', 'value': 'Nivel nacional'},
+                 {'label': 'Region', 'value': 'Region'}],
+        value='Nivel nacional'
+    ),
+    dcc.Dropdown(
         id='especie-dropdown',
         options=[{'label': especie, 'value': especie} for especie in especies],
         value=especies[0]
     ),
+    dcc.Dropdown(
+        id='region-dropdown',
+        options=[{'label': region, 'value': region} for region in regiones],
+        value=regiones[0],
+        style={'display': 'none'}
+    ),
     dcc.Graph(id='especie-graph')
 ])
 
-# Definir el comportamiento interactivo
 @app.callback(
     Output('especie-graph', 'figure'),
-    [Input('especie-dropdown', 'value')]
+    [Input('especie-dropdown', 'value'),
+     Input('nivel-dropdown', 'value'),
+     Input('region-dropdown', 'value')]
 )
-def update_figure(selected_especie):
-    df_especie = df_last_10_years[df_last_10_years["Especie"] == selected_especie]
+def update_figure(selected_especie, nivel, region):
+    if nivel == 'Nivel nacional':
+        df_especie = df_last_10_years[df_last_10_years["Especie"] == selected_especie]
+    else:  # Nivel de región
+        df_especie = df_last_10_years[(df_last_10_years["Especie"] == selected_especie) &
+                                      (df_last_10_years["region"] == region)]
+
+    # Comprobar si df_especie tiene registros
+    if df_especie.empty:
+        return go.Figure(
+            layout=go.Layout(
+                title="Sin registros de precio playa para el rango solicitado"
+            )
+        )
+
     df_especie_aggregated = df_especie.groupby("año")["precio_ton"].agg(['mean', 'std']).reset_index()
 
-    # Obtener el nombre científico para la especie seleccionada
     spp_scname = df_especie["spp_scname"].iloc[0]
-    
+
     fig = go.Figure()
-    
+
     fig.add_trace(go.Scatter(
-        x=df_especie_aggregated["año"], 
+        x=df_especie_aggregated["año"],
         y=df_especie_aggregated["mean"],
-        mode='lines+markers', 
+        mode='lines+markers',
         name="Precio promedio",
         line=dict(color='grey', width=1),
         error_y=dict(
-            type='data', 
+            type='data',
             array=df_especie_aggregated["std"],
             visible=True,
             color='black',
@@ -75,13 +102,12 @@ def update_figure(selected_especie):
         )
     ))
 
-    fig.update_layout(
-    title=f"Precio promedio anual de {selected_especie} ({spp_scname})",
-    xaxis_title="Año",
-    yaxis_title="Precio (Toneladas). CLP",
-    legend=dict(title="", orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
-    showlegend=True,
-    template="plotly_white",
+    fig.update_layout(title=f"Precio promedio anual de {selected_especie} ({spp_scname})",
+                      xaxis_title="Año",
+                      yaxis_title="Precio (Toneladas). CLP",
+                      legend=dict(title="", orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
+                      showlegend=True,
+                      template="plotly_white",
     annotations=[
         dict(
             text="Datacenter SECOS",
@@ -89,7 +115,7 @@ def update_figure(selected_especie):
             x=1, y=0.98, 
             showarrow=False,
             xanchor="right", yanchor="bottom",
-            font=dict(size=10)
+            font=dict(size=8)
         ),
         dict(
             text="Fuente: Sernapesca",
@@ -97,13 +123,23 @@ def update_figure(selected_especie):
             x=1, y=0.95, 
             showarrow=False,
             xanchor="right", yanchor="bottom",
-            font=dict(size=10)
+            font=dict(size=8)
         )
     ]
 )
-    
     return fig
+
+@app.callback(
+    Output('region-dropdown', 'style'),
+    [Input('nivel-dropdown', 'value')]
+)
+def toggle_region_dropdown(nivel):
+    if nivel == 'Region':
+        return {'display': 'block'}
+    else:
+        return {
+            'display': 'none'}
 
 # Iniciar la app
 if __name__ == '__main__':
-    app.run_server(app.run_server(debug=True))
+    app.run_server(debug=True)
