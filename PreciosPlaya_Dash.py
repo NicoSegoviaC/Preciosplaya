@@ -75,12 +75,32 @@ def update_figure(selected_especie):
         )
     ))
 
-    fig.update_layout(title=f"Precio promedio anual de {selected_especie} ({spp_scname})",
-                      xaxis_title="Año",
-                      yaxis_title="Precio (Toneladas). CLP",
-                      legend=dict(title="", orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
-                      showlegend=True,
-                      template="plotly_white")
+fig.update_layout(
+    title=f"Precio promedio anual de {selected_especie} ({spp_scname})",
+    xaxis_title="Año",
+    yaxis_title="Precio (Toneladas). CLP",
+    legend=dict(title="", orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
+    showlegend=True,
+    template="plotly_white",
+    annotations=[
+        dict(
+            text="Datacenter SECOS",
+            xref="paper", yref="paper",
+            x=1, y=0.98, 
+            showarrow=False,
+            xanchor="right", yanchor="bottom",
+            font=dict(size=10)
+        ),
+        dict(
+            text="Fuente: Sernapesca",
+            xref="paper", yref="paper",
+            x=1, y=0.95, 
+            showarrow=False,
+            xanchor="right", yanchor="bottom",
+            font=dict(size=10)
+        )
+    ]
+)
     
     return fig
 
