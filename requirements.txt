@@ -1,4 +1,4 @@
 pandas==2.0.3
-dash-core-components==2.11.0
+dash==2.11.1
 dcc==2.11.0
 plotly==5.15.0
