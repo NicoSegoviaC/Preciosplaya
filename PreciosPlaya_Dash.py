@@ -34,6 +34,7 @@ especies = sorted(df_last_10_years["Especie"].unique())
 
 # Inicializar la app
 app = dash.Dash(__name__)
+server = app.server
 
 # Definir la estructura de la app
 app.layout = html.Div([
