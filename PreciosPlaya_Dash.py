@@ -75,7 +75,7 @@ def update_figure(selected_especie):
         )
     ))
 
-fig.update_layout(
+    fig.update_layout(
     title=f"Precio promedio anual de {selected_especie} ({spp_scname})",
     xaxis_title="Año",
     yaxis_title="Precio (Toneladas). CLP",
