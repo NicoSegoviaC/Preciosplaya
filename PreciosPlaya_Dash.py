@@ -39,7 +39,11 @@ app = dash.Dash(__name__)
 server = app.server
 
 # Definir la estructura de la app
-app.layout = html.Div([
+# Encabezado con el título y el logo
+    html.Div([
+        html.H1('Precios Playa de recursos pesqueros artesanales', style={'display': 'inline-block', 'margin-right': '20px'}),
+        html.Img(src='/assets/DC_Logo.png', style={'height':'20%', 'width':'20%', 'display': 'inline-block'}),
+    ], style={'display': 'flex', 'align-items': 'center', 'justify-content': 'center'}),
     dcc.Dropdown(
         id='nivel-dropdown',
         options=[{'label': 'Nivel nacional', 'value': 'Nivel nacional'},
